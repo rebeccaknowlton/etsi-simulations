@@ -1,0 +1,1 @@
+This repository contains code to fully reproduce the simulation results and application illustration in Knowlton, R., Parast, L. (2024) ``Efficient Testing Using Surrogate Information," which is under review.
