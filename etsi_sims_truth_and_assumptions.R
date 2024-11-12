@@ -1,6 +1,5 @@
 set.seed(0)
-# script should calculate true R, true pi, and checks the assumptions
-
+# Calculate true R, true pi, and check assumptions
 
 ############################ SETTING 1 ############################
 params <- get.parameters(1)
@@ -9,7 +8,7 @@ range(truth.1$R)
 truth.1$pi
 
 ### C1: conditional mean function is monotone increasing in S ###
-# this is just true because E(Y1) increases as S1 increases, and same for control group 
+# this is true because E(Y1) increases as S1 increases, and same for control group 
 # (specifically this is true within the strong surrogacy group, not for the weak group)
 
 ### C2: P(S1 > s) > P(S0 > s) for all s ###
@@ -56,7 +55,7 @@ range(truth.2$R)
 truth.2$pi
 
 ### C1: conditional mean function is monotone increasing in S ###
-# this is just true because E(Y1) increases as S1 increases, and same for control group 
+# this is true because E(Y1) increases as S1 increases, and same for control group 
 
 ### C2: P(S1 > s) > P(S0 > s) for all s ###
 
@@ -103,4 +102,4 @@ truth.3 <- get.truth(3)
 range(truth.3$R)
 truth.3$pi
 
-# all assumptions are met by definition since there's no treatment effect and the data generating process is hte same in both groups
+# all assumptions are met by definition since there's no treatment effect and the data generating process is the same in both groups

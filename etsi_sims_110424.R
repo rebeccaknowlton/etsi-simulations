@@ -199,10 +199,10 @@ get.truth <- function(setting) {
   return(list("W.grid" = W.grid, "R" = R, "pi" = pi))
 }
 
-# generate study A
+# Generate study A
 set.seed(1)
 study.A <- gen.data(n1.a, n0.a, setting, "A")
-# export study A
+# Export study A
 write.table(study.A, paste("etsi.studyA",setting,"_110424.txt",sep=""), quote = FALSE, row.names = FALSE)
 
 control.A <- study.A[study.A$A == 0,]
@@ -222,14 +222,14 @@ est.delta.B <- function(y1, y0) {
 }
 
 est.delta.AB <- function(s1, s0, var.want = TRUE) {
-  # kernel smoothing
+  # Kernel smoothing
   kernel <- function(x, h) {return(dnorm(x / h) / h)}
   get.mu.hat.0 <- function(s, A.s0, A.y0) {
     h.0 <- bw.nrd(A.s0)*length(A.s0)^(-0.2)
     return(sum(kernel(A.s0 - s, h.0) * A.y0 / sum(kernel(A.s0 - s, h.0))))
   }
   
-  # predict y values based on control group from study A
+  # Predict y values based on control group from study A
   y1 <- unlist(lapply(s1, get.mu.hat.0, A.s0 = control.A$S, A.y0 = control.A$Y))
   y0 <- unlist(lapply(s0, get.mu.hat.0, A.s0 = control.A$S, A.y0 = control.A$Y))
   if (sum(is.na(y1)) != 0) {
@@ -263,13 +263,13 @@ est.delta.AB <- function(s1, s0, var.want = TRUE) {
 }
 
 
-# function that takes in study B dataframe and a kappa thershold, and returns indicator whether that individual has strong surrogate based on study A
+# Function that takes in study B dataframe and a kappa threshold, and returns indicator whether that individual has strong surrogate based on study A
 get.delta <- function(df, k) {
   closest.index <- sapply(df$W, function(w) {which.min(abs(PTE.results$w.values - w))})
   return(PTE.results$R.w.s[closest.index] > k)
 }
 
-# generate study B with same data generation setup, and test H_0: \delta_B = 0
+# Generate study B with same data generation setup, and test H_0: \delta_B = 0
 
 delta.B.estimates <- data.frame("delta.B" = rep(NA, num.sim),
                                 "se.delta.B" = rep(NA, num.sim),
@@ -290,7 +290,7 @@ delta.P.estimates.k3 <- data.frame("delta.P" = rep(NA, num.sim),
 for (i in 1:num.sim) {
   study.B <- gen.data(n1.b, n0.b, setting, "B")
   
-  # export one iteration for example data, setting 1 only
+  # Export one iteration for example data, setting 1 only
   if (i == 1 & setting == 1) {
     write.table(study.B, paste("etsi.studyB.example",setting,"_110424.txt",sep=""), quote = FALSE, row.names = FALSE)
   }

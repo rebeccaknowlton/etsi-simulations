@@ -11,7 +11,7 @@ output <- read.table(paste("etsi.output", setting, "_110424",".txt", sep=""), he
 
 colMeans(output)
 
-# proportion rejected 
+# Proportion rejected 
 apply(output[,c(3,6,9,12,15)], 2, function(x) mean(x < 0.05))
 
 results <- matrix(ncol = 5, nrow = 6)
