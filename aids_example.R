@@ -5,7 +5,7 @@ library(quantreg)
 #### USING ACTG 320 AS STUDY A
 ################################################
 
-
+# Set working directory to data location
 setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi/AIDS Data/ACTG320-Data")
 tmpg <- function(xx){exp(xx)}; tmpginv <- function(xx){log(xx)}
 tmpg <- function(xx){xx^2}; tmpdg <- function(xx){2*xx}; tmpginv <- function(xx){sqrt(xx)}
@@ -39,8 +39,9 @@ library(Rsurrogate)
 
 aids.base = aids.base[!(is.na(aids.base$RNACHANGE) | is.na(aids.base$CD4CHANGE)),]
 
+# Multiply outcome by -1 so that higher values are better, matching our assumptions
 study.A <- data.frame(A = aids.base$TREAT - 1,
-                      Y = aids.base$RNACHANGE,
+                      Y = -1*aids.base$RNACHANGE,
                       S = aids.base$CD4CHANGE,
                       W = aids.base$AVECD4)
 
@@ -57,16 +58,16 @@ het.ob = hetsurr.fun(y1 = study.A$Y[study.A$A == 1],
                      w0 = study.A$W[study.A$A == 0],
                      c.adj=2, var.want =TRUE,  test.want = TRUE, type = "cont")
 het.ob
-#SIGNIFICANT HETEROGENEITY
+# Evidence of significant heterogeneity
 
+# Plot estimated PTE for Study A
 library(ggplot2)
-# plot
 het_df <- data.frame(het.ob)
 ggplot(het_df, aes(x = w.values)) +
   geom_line(aes(y = R.w.s), linewidth = 1.2, color = "black") +
   geom_ribbon(aes(ymin = band.R.w.s.lower, ymax = band.R.w.s.upper), 
               fill = "grey40", alpha = 0.4) +
-  geom_hline(yintercept = c(0.5, 0.6, 0.7), linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(0.5, 0.6), linetype = "dashed", size = 1) +
   labs(x = "Baseline CD4", y = expression(R[S])) +
   xlim(9, 185) +
   theme_minimal(base_size = 15) 
@@ -75,11 +76,11 @@ ggplot(het_df, aes(x = w.values)) +
 #### USING ACTG 193A AS STUDY B
 ################################################
 
-#use the data that ACTG gave me with DOES have RNA, but only for a small random subset. Not ideal but nothing else is working.
+# Set working directory to data location
 setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi/AIDS Data/ACTG 193A Data")
-#Zidovudine and didanosine (same time) . (2 NRTIs) = CONTROL, GROUP 0, ZDV+ddI
-#Zidovudine and didanosine and nevirapine . (2 NRTIs plus NNRTI), TREAT, GROUP 1 ZDV+ddI+NVP
-#OK SO GROUP 0 = ZDV+ddI; GROUP 1 = ZDV+ddI+NVP
+# Control group: Zidovudine and didanosine (2 NRTIs)
+# Treatment group: Zidovudine and didanosine and nevirapine (2 NRTIs plus NNRTI)
+# So let GROUP 0 = ZDV+ddI; GROUP 1 = ZDV+ddI+NVP
 
 aids.193 = read.csv("193A_Base.csv", header = T)
 aids.193 = aids.193[aids.193$TRT == "ZDV+ddI" | aids.193$TRT == "ZDV+ddI+NVP",]
@@ -93,7 +94,7 @@ aids.193$CD424 = vector(length = n.total)
 aids.193$RNABASE = vector(length = n.total)
 aids.193$RNA24 = vector(length = n.total)
 
-#get baseline and 24 week CD4 and logRNA
+# Get baseline and 24 week CD4 and logRNA
 for(i in 1:n.total) {
 	if(dim(aids.193.cd4[aids.193.cd4$PATID == aids.193$PATID[i] & aids.193.cd4$VISIT == "Baseline",])[1] > 0) {aids.193$CD4BASE[i] = aids.193.cd4[aids.193.cd4$PATID == aids.193$PATID[i] & aids.193.cd4$VISIT == "Baseline",]$CD4} else {aids.193$CD4BASE[i] = NA}
 	if(dim(aids.193.cd4[aids.193.cd4$PATID == aids.193$PATID[i] & aids.193.cd4$VISIT == "Week 24",])[1] > 0) {aids.193$CD424[i] = aids.193.cd4[aids.193.cd4$PATID == aids.193$PATID[i] & aids.193.cd4$VISIT == "Week 24",]$CD4} else {aids.193$CD424[i] = NA}
@@ -101,49 +102,47 @@ for(i in 1:n.total) {
 	if(dim(aids.193.rna[aids.193.rna$PATID == aids.193$PATID[i] & aids.193.rna$VISIT == "Week 24",])[1] > 0) {aids.193$RNA24[i] = aids.193.rna[aids.193.rna$PATID == aids.193$PATID[i] & aids.193.rna$VISIT == "Week 24",]$LOGRNA} else {aids.193$RNA24[i] = NA}
 }
 
-#calculate change
+# Calculate change
 aids.193$CD4CHANGE = aids.193$CD424 - aids.193$CD4BASE
 aids.193$RNACHANGE = aids.193$RNA24 - aids.193$RNABASE
 
-#note this is a huge cut because of the RNA measurement
+# Only use the observations that include RNA measurements
+# Note this is a significant cut in sample size
 studyb = aids.193[!is.na(aids.193$CD4CHANGE) & !is.na(aids.193$RNACHANGE),]
 
+# Multiply outcome by -1 so that higher values are better, matching our assumptions
 study.B <- data.frame(A = studyb$TRT,
-                      Y = studyb$RNACHANGE,
+                      Y = -1*studyb$RNACHANGE,
                       S = studyb$CD4CHANGE,
                       W = studyb$CD4BASE)
 
 sum(study.B$A == 1) # n1 = 28
 sum(study.B$A == 0) # n0 = 37
 
-# function to calculate delta col for a dataframe df, given a threshold k
+# Helper function to calculate delta col for strong surrogacy
 get.delta.aids <- function(df, k) {
   closest.index <- sapply(df$W, function(w) {which.min(abs(het.ob$w.values - w))})
   return(het.ob$R.w.s[closest.index] > k)
 }
 
-# make sure to run est.delta.B and est.delta.AB functions from main sim file
+# Export study A dataframe for study design purposes with delta based on k = 0.5
+study.A$delta <- 1*get.delta.aids(study.A, 0.5)
+setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi")
+write.table(study.A, paste("aids.studyA.txt",sep=""), quote = FALSE, row.names = FALSE)
+
+# First run est.delta.B and est.delta.AB functions from main sim file
 results.B <- est.delta.B(y1 = study.B$Y[study.B$A == 1], 
                          y0 = study.B$Y[study.B$A == 0])
-#$delta.B
-#[1] -0.3951273
-#$se.delta.B
-#[1] 0.1679022
-
 
 control.A <- study.A[study.A$A == 0, ]
 
 results.AB <- est.delta.AB(s1 = study.B$S[study.B$A == 1],
                            s0 = study.B$S[study.B$A == 0])
-#$delta.AB
-#[1] -0.005548401
-#$se.delta.AB
-#[1]0.06152171
 
-thresholds <- c(0.5, 0.6, 0.7)
-results.P <- matrix(nrow = 3, ncol = 3)
+thresholds <- c(0.5, 0.6)
+results.P <- matrix(nrow = 2, ncol = 3)
 colnames(results.P) <- c("delta.P", "se.delta.P", "p.value")
-rownames(results.P) <- c("k = 0.5", "k = 0.6", "k = 0.7")
+rownames(results.P) <- c("k = 0.5", "k = 0.6")
 
 for (k in 1:length(thresholds)) {
   study.A$delta <- 1*get.delta.aids(study.A, thresholds[k])
@@ -151,9 +150,9 @@ for (k in 1:length(thresholds)) {
   results.P[k,] <- unlist(etsi.main(study.A, study.B))
 }
 
-results <- matrix(ncol = 5, nrow = 4)
+results <- matrix(ncol = 4, nrow = 4)
 rownames(results) <- c("Estimate", "SE", "Effect Size", "p")
-colnames(results) <- c("Delta.B", "Delta.AB", "Delta.P: k > 0.5", "Delta.P: k > 0.6", "Delta.P: k > 0.7")
+colnames(results) <- c("Delta.B", "Delta.AB", "Delta.P: k = 0.5", "Delta.P: k = 0.6")
 
 # fill in B results
 results[1,1] <- results.B$delta.B
@@ -164,7 +163,6 @@ results[2,2] <- results.AB$se.delta.AB
 # P results
 results[1:2,3] <- results.P[1,1:2]
 results[1:2,4] <- results.P[2,1:2]
-results[1:2,5] <- results.P[3,1:2]
 
 results[3,] <- results[1,] / results[2,]
 results[4,] <- 2* (1 - pnorm(abs(results[3,])))
@@ -178,12 +176,10 @@ print(round(results,3))
 
 #################### CHECK ASSUMPTIONS #################### 
 
-### All of these should be within the region of strong surrogacy... 
-### so I guess I can just define that based on PTE > 0.5 since that's the lowest threshold we use
-
+# Check assumptions in region of strong surrogacy, where estimated PTE > 0.5
 threshold <- 0.5
 
-# strong surrogacy in Study A:
+# Strong surrogacy in Study A:
 y1.strong <- y1[A.w1.closest.R >= threshold]
 y0.strong <- y0[A.w0.closest.R >= threshold]
 s1.strong <- s1[A.w1.closest.R >= threshold]
@@ -191,7 +187,7 @@ s0.strong <- s0[A.w0.closest.R >= threshold]
 w1.strong <- w1[A.w1.closest.R >= threshold]
 w0.strong <- w0[A.w0.closest.R >= threshold]
 
-# strong surrogacy in Study B:
+# Strong surrogacy in Study B:
 studyb.y1.strong <- studyb.y1[R.studyb.w1 >= threshold]
 studyb.y0.strong <- studyb.y0[R.studyb.w0 >= threshold]
 studyb.s1.strong <- studyb.s1[R.studyb.w1 >= threshold]
@@ -257,7 +253,7 @@ check.c2 <- function(s1, s0) {
 }
 
 check.c2(s1.strong, s0.strong) # OK
-check.c2(studyb.s1.strong, studyb.s0.strong) # mostly OK
+check.c2(studyb.s1.strong, studyb.s0.strong) # Mostly OK
 
 ### C3: E(Y1 |s) > E(Y0 | s) for all s, in both studies A and B ###
 
@@ -346,7 +342,7 @@ ggplot(plot_data, aes(x = s, y = preds, color = group, fill = group)) +
   theme_minimal() +
   theme(legend.title = element_blank())
 
-# this doesn't really seem to be met
+# this assumption doesn't really seem to be met
 
 ### C5: support of S0_B, S1_B, and S1_A contained within support of S0_A ###
 
@@ -368,4 +364,4 @@ ggplot(c5.data, aes(x = value, color = group, fill = group)) +
   theme(legend.title = element_blank())
 
 # everything should be contained within blue density
-# seems kinda true, but on the right tail red isn't really contained, so slightly violated for large values of s1.strong
+# seems mostly true, but on the right tail red isn't really contained, so slightly violated for large values of s1.strong
