@@ -20,7 +20,7 @@ if (setting == 1 | setting == 2) {
 } else if (setting == 3) {
   rownames(results) <- c("Point Estimate", "ESE", "ASE", "Effect Size", "Type 1 Error", "pi_B")
 }
-colnames(results) <- c("Delta.B", "Delta.AB", "Delta.P: k > 0.5", "Delta.P: k > 0.6", "Delta.P: k > 0.7")
+colnames(results) <- c("Delta.B", "Delta.AB", "Delta.P: k = 0.5", "Delta.P: k = 0.6", "Delta.P: k = 0.7")
 
 
 results[1,] <- colMeans(output[,c(1,4,7,10,13)])

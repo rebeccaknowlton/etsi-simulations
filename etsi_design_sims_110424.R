@@ -31,7 +31,7 @@ for (k in 1:length(thresholds)) {
 # results 
 results <- matrix(ncol = 3, nrow = 3)
 rownames(results) <- c("Estimated Power", "Empirical Power","pi_B")  
-colnames(results) <- c("Delta.P: k > 0.5", "Delta.P: k > 0.6", "Delta.P: k > 0.7")
+colnames(results) <- c("Delta.P: k = 0.5", "Delta.P: k = 0.6", "Delta.P: k = 0.7")
 
 results[1,] <- unlist(power.sim)
 results[2,] <- emp.power
@@ -44,7 +44,7 @@ print(round(results,3))
 # sample size results
 n.results <- matrix(ncol = 3, nrow = 2)
 rownames(n.results) <- c("Estimated n (from empirical power)", "Estimated n (from estimated power)")  
-colnames(n.results) <- c("Delta.P: k > 0.5", "Delta.P: k > 0.6", "Delta.P: k > 0.7")
+colnames(n.results) <- c("Delta.P: k = 0.5", "Delta.P: k = 0.6", "Delta.P: k = 0.7")
 n.results[1,] <- unlist(n.emp.sim)
 n.results[2,] <- unlist(n.est.sim)
 n.results.latex <- format(round(n.results ,3),nsmall=3)
