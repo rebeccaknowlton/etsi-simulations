@@ -2,8 +2,7 @@ library(matrixStats)
 library(quantreg)
 
 #set the working directory to where the txt files are
-setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi")
-setting <- 3
+setting <- 5
 
 
 output <- read.table(paste("etsi.output", setting, "_110424",".txt", sep=""), header = T)
@@ -15,7 +14,7 @@ colMeans(output)
 apply(output[,c(3,6,9,12,15)], 2, function(x) mean(x < 0.05))
 
 results <- matrix(ncol = 5, nrow = 6)
-if (setting == 1 | setting == 2) {
+if (setting == 1 | setting == 2 | setting == 4 |setting == 5) {
   rownames(results) <- c("Point Estimate", "ESE", "ASE", "Effect Size", "Power", "pi_B")  
 } else if (setting == 3) {
   rownames(results) <- c("Point Estimate", "ESE", "ASE", "Effect Size", "Type 1 Error", "pi_B")

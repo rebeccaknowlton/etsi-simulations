@@ -2,7 +2,7 @@ library(etsi)
 library(hetsurr)
 
 # only change setting and run everything below
-setting <- 3
+setting <- 5
 
 # set simulation parameters
 n1.a <- 1000 
@@ -62,6 +62,40 @@ get.parameters <- function(setting){
     beta5 = 0
     sd.y = 6
     return(list("w.lower" = w.lower, "w.upper" = w.upper, "s.mean.control" = s.mean.control, "s.mean.treat" = s.mean.treat, "s.sd.control" = s.sd.control, "s.sd.treat" = s.sd.treat,"beta0"=beta0,"beta1"=beta1, "beta2"=beta2,"beta3"=beta3, "beta4"=beta4, "beta5"=beta5, "sd.y"=sd.y))
+  }
+   if(setting ==4){
+    w.lower <- 0
+    w.upper <- 10
+    w.cutoff <- 5
+    s0.scale <- 2.4  
+    s0.shape <- 2.4
+    s1.scale <- 2.55
+    s1.shape <- 2.55
+    beta0 <- 1
+    beta1 <- 1.8
+    beta2 <- 0
+    beta3 <- 0
+    beta4 <- 2.1
+    beta5 <- 0.2
+    sd.y <- 1
+    return(list("w.lower" = w.lower, "w.upper" = w.upper, "w.cutoff" = w.cutoff, "s0.scale" = s0.scale, "s0.shape" = s0.shape, "s1.scale" = s1.scale, "s1.shape" = s1.shape, "beta0" = beta0, "beta1" = beta1, "beta2" = beta2, "beta3" = beta3, "beta4" = beta4, "beta5" = beta5, "sd.y" = sd.y))
+  }
+  if(setting ==5){
+    w.lower <- 0
+    w.upper <- 10
+    w.cutoff <- 5
+    s0.scale <- 2.4  
+    s0.shape <- 2.4
+    s1.scale <- 2.55
+    s1.shape <- 2.55
+    beta0 <- 1
+    beta1 <- 0.9
+    beta2 <- 0
+    beta3 <- 0
+    beta4 <- 2.8
+    beta5 <- 0.1
+    sd.y <- 1
+    return(list("w.lower" = w.lower, "w.upper" = w.upper, "w.cutoff" = w.cutoff, "s0.scale" = s0.scale, "s0.shape" = s0.shape, "s1.scale" = s1.scale, "s1.shape" = s1.shape, "beta0" = beta0, "beta1" = beta1, "beta2" = beta2, "beta3" = beta3, "beta4" = beta4, "beta5" = beta5, "sd.y" = sd.y))
   }
 }
 
@@ -123,12 +157,61 @@ gen.data <- function(n1, n0, setting, study="A"){
     data.temp$Y <- params$beta2 * data.temp$S + params$beta4 * data.temp$W + params$beta5 * data.temp$A * data.temp$W + rnorm(n1+n0, mean = 0, sd = params$sd.y)
     return(data.temp)
   }
+  if(setting == 4) {
+  	if (study == "A") {
+  		params <- get.parameters(setting=1)
+    data.temp <- data.frame(A = c(rep(1, n1), rep(0, n0)),
+                            W = runif(n1 + n0, params$w.lower, params$w.upper))
+    
+    data.temp$S[data.temp$A==1] <- rgamma(n1, shape = params$s1.shape, scale = params$s1.scale)
+    data.temp$S[data.temp$A==0] <- rgamma(n0, shape = params$s0.shape, scale = params$s0.scale)
+    data.temp$Y[data.temp$W < params$w.cutoff] <- params$beta0 + params$beta1 * data.temp$A[data.temp$W < params$w.cutoff] + 
+      params$beta2 * data.temp$S[data.temp$W < params$w.cutoff] + params$beta3 * data.temp$A[data.temp$W < params$w.cutoff] * data.temp$S[data.temp$W < params$w.cutoff] + rnorm(sum(data.temp$W < params$w.cutoff), 0, params$sd.y)
+    data.temp$Y[data.temp$W >= params$w.cutoff] <- params$beta4 * data.temp$S[data.temp$W >= params$w.cutoff] +
+      params$beta5 * data.temp$A[data.temp$W >= params$w.cutoff] * data.temp$S[data.temp$W >= params$w.cutoff] + rnorm(sum(data.temp$W >= params$w.cutoff), 0, params$sd.y)}
+    if (study == "B") {
+  		params <- get.parameters(setting=4)
+    data.temp <- data.frame(A = c(rep(1, n1), rep(0, n0)),
+                            W = runif(n1 + n0, params$w.lower, params$w.upper))
+    
+    data.temp$S[data.temp$A==1] <- rgamma(n1, shape = params$s1.shape, scale = params$s1.scale)
+    data.temp$S[data.temp$A==0] <- rgamma(n0, shape = params$s0.shape, scale = params$s0.scale)
+    data.temp$Y[data.temp$W < params$w.cutoff] <- params$beta0 + params$beta1 * data.temp$A[data.temp$W < params$w.cutoff] + 
+      params$beta2 * data.temp$S[data.temp$W < params$w.cutoff] + params$beta3 * data.temp$A[data.temp$W < params$w.cutoff] * data.temp$S[data.temp$W < params$w.cutoff] + rnorm(sum(data.temp$W < params$w.cutoff), 0, params$sd.y)
+    data.temp$Y[data.temp$W >= params$w.cutoff] <- params$beta4 * data.temp$S[data.temp$W >= params$w.cutoff] +
+      params$beta5 * data.temp$A[data.temp$W >= params$w.cutoff] * data.temp$S[data.temp$W >= params$w.cutoff] + rnorm(sum(data.temp$W >= params$w.cutoff), 0, params$sd.y)}
+    return(data.temp)
+  }
+  if(setting == 5) {
+  	if (study == "A") {
+  		params <- get.parameters(setting=1)
+    data.temp <- data.frame(A = c(rep(1, n1), rep(0, n0)),
+                            W = runif(n1 + n0, params$w.lower, params$w.upper))
+    
+    data.temp$S[data.temp$A==1] <- rgamma(n1, shape = params$s1.shape, scale = params$s1.scale)
+    data.temp$S[data.temp$A==0] <- rgamma(n0, shape = params$s0.shape, scale = params$s0.scale)
+    data.temp$Y[data.temp$W < params$w.cutoff] <- params$beta0 + params$beta1 * data.temp$A[data.temp$W < params$w.cutoff] + 
+      params$beta2 * data.temp$S[data.temp$W < params$w.cutoff] + params$beta3 * data.temp$A[data.temp$W < params$w.cutoff] * data.temp$S[data.temp$W < params$w.cutoff] + rnorm(sum(data.temp$W < params$w.cutoff), 0, params$sd.y)
+    data.temp$Y[data.temp$W >= params$w.cutoff] <- params$beta4 * data.temp$S[data.temp$W >= params$w.cutoff] +
+      params$beta5 * data.temp$A[data.temp$W >= params$w.cutoff] * data.temp$S[data.temp$W >= params$w.cutoff] + rnorm(sum(data.temp$W >= params$w.cutoff), 0, params$sd.y)}
+    if (study == "B") {
+  		params <- get.parameters(setting=5)
+    data.temp <- data.frame(A = c(rep(1, n1), rep(0, n0)),
+                            W = runif(n1 + n0, params$w.lower, params$w.upper))
+    
+    data.temp$S[data.temp$A==1] <- rgamma(n1, shape = params$s1.shape, scale = params$s1.scale)
+    data.temp$S[data.temp$A==0] <- rgamma(n0, shape = params$s0.shape, scale = params$s0.scale)
+    
+    data.temp$Y<- params$beta0 + params$beta1 * data.temp$A + 
+      params$beta2 * data.temp$S + params$beta3 * data.temp$A * data.temp$S+ rnorm(length(data.temp$A), 0, params$sd.y)}
+    return(data.temp)
+  }
 }
 
 # calculate true R and pi
 get.truth <- function(setting) {
   params <- get.parameters(setting)
-  if (setting == 1) {
+  if (setting == 1 | setting == 4 | setting == 5) {
     W.grid <- runif(100000, params$w.lower, params$w.upper)
     delta.s <- rep(NA, length(grid))
     delta <- rep(NA, length(grid))
