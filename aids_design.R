@@ -9,7 +9,7 @@ options <- expand.grid(n.vec, kappa.vec, psi.vec)
 colnames(options) <- c("n","kappa", "psi")
 
 # read in Study A
-study.A <- read.table(paste("aids.studyA.txt", sep=""), header = T)
+study.A <- read.table(paste("aids_output/aids.studyA.txt", sep=""), header = T)
 study.A <- study.A[,-5]
 
 power.res <- rep(NA, nrow(options))
@@ -30,7 +30,7 @@ results.df <- data.frame("sample.size" = options[,1]*2, # multiply by 2 for n1 +
 # plot 
 library(ggplot2)
 # Plot sample size vs power with lines for different combinations of kappa and psi
-ggplot(results.df, aes(x = power, y = sample.size, color = factor(psi), linetype = factor(kappa))) +
+fig3 <- ggplot(results.df, aes(x = power, y = sample.size, color = factor(psi), linetype = factor(kappa))) +
   geom_line(size = 0.9) +
   geom_point() +
   labs(
@@ -40,3 +40,7 @@ ggplot(results.df, aes(x = power, y = sample.size, color = factor(psi), linetype
     linetype = "Kappa") +
   theme_minimal() +
   theme(legend.position = "right") 
+
+# FIGURE 3 output
+ggsave("results/fig3.png", plot = fig3, bg = "white")
+

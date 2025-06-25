@@ -5,8 +5,7 @@ library(quantreg)
 #### USING ACTG 320 AS STUDY A
 ################################################
 
-# Set working directory to data location
-setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi/AIDS Data/ACTG320-Data")
+# Set working directory to ACTG data location
 tmpg <- function(xx){exp(xx)}; tmpginv <- function(xx){log(xx)}
 tmpg <- function(xx){xx^2}; tmpdg <- function(xx){2*xx}; tmpginv <- function(xx){sqrt(xx)}
 log.link <- list(tmpg, tmpg, tmpginv); rm(tmpg, tmpginv)
@@ -63,7 +62,7 @@ het.ob
 # Plot estimated PTE for Study A
 library(ggplot2)
 het_df <- data.frame(het.ob)
-ggplot(het_df, aes(x = w.values)) +
+fig2 <- ggplot(het_df, aes(x = w.values)) +
   geom_line(aes(y = R.w.s), linewidth = 1.2, color = "black") +
   geom_ribbon(aes(ymin = band.R.w.s.lower, ymax = band.R.w.s.upper), 
               fill = "grey40", alpha = 0.4) +
@@ -72,12 +71,14 @@ ggplot(het_df, aes(x = w.values)) +
   xlim(9, 185) +
   theme_minimal(base_size = 15) 
 
+# FIGURE 2 output
+ggsave("results/fig2.png", plot = fig2, bg = "white")
+
 ############################################
 #### USING ACTG 193A AS STUDY B
 ################################################
 
-# Set working directory to data location
-setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi/AIDS Data/ACTG 193A Data")
+# Don't forget to set working directory to data location
 # Control group: Zidovudine and didanosine (2 NRTIs)
 # Treatment group: Zidovudine and didanosine and nevirapine (2 NRTIs plus NNRTI)
 # So let GROUP 0 = ZDV+ddI; GROUP 1 = ZDV+ddI+NVP
@@ -126,9 +127,11 @@ get.delta.aids <- function(df, k) {
 }
 
 # Export study A dataframe for study design purposes with delta based on k = 0.5
+if (!file.exists("aids_output")){
+  dir.create("aids_output")
+}
 study.A$delta <- 1*get.delta.aids(study.A, 0.5)
-setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi")
-write.table(study.A, paste("aids.studyA.txt",sep=""), quote = FALSE, row.names = FALSE)
+write.table(study.A, paste("aids_output/aids.studyA.txt",sep=""), quote = FALSE, row.names = FALSE)
 
 # First run est.delta.B and est.delta.AB functions from main sim file
 results.B <- est.delta.B(y1 = study.B$Y[study.B$A == 1], 
@@ -167,9 +170,9 @@ results[1:2,4] <- results.P[2,1:2]
 results[3,] <- results[1,] / results[2,]
 results[4,] <- 2* (1 - pnorm(abs(results[3,])))
 
-setwd("C:/Users/rkkno/Documents/University of Texas at Austin/etsi")
 results.latex <- format(round(results ,3),nsmall=3)
-latex.table(results.latex, "aidsres", caption = "", dcolumn = T)
+# TABLE 3 output
+latex.table(results.latex, "results/table3", caption = "", dcolumn = T)
 print(round(results,3))
 
 

@@ -2,7 +2,7 @@ library(etsi)
 library(hetsurr)
 
 # only change setting and run everything below
-setting <- 5
+setting <- 1
 
 # set simulation parameters
 n1.a <- 1000 
@@ -286,7 +286,10 @@ get.truth <- function(setting) {
 set.seed(1)
 study.A <- gen.data(n1.a, n0.a, setting, "A")
 # Export study A
-write.table(study.A, paste("etsi.studyA",setting,"_110424.txt",sep=""), quote = FALSE, row.names = FALSE)
+if (!file.exists("sim_output")){
+  dir.create("sim_output")
+}
+write.table(study.A, paste("sim_output/etsi.studyA",setting,"_110424.txt",sep=""), quote = FALSE, row.names = FALSE)
 
 control.A <- study.A[study.A$A == 0,]
 
@@ -373,11 +376,6 @@ delta.P.estimates.k3 <- data.frame("delta.P" = rep(NA, num.sim),
 for (i in 1:num.sim) {
   study.B <- gen.data(n1.b, n0.b, setting, "B")
   
-  # Export one iteration for example data, setting 1 only
-  if (i == 1 & setting == 1) {
-    write.table(study.B, paste("etsi.studyB.example",setting,"_110424.txt",sep=""), quote = FALSE, row.names = FALSE)
-  }
-  
   # delta.B
   results.temp <- est.delta.B(y1 = study.B$Y[study.B$A==1], y0 = study.B$Y[study.B$A==0])
   delta.B.estimates$delta.B[i] <- results.temp$delta.B
@@ -429,5 +427,5 @@ colnames(sim.results) <- c("delta.B", "se.delta.B", "p.value.B",
                            "delta.P.k2", "se.delta.P.k2", "p.value.P.k2",
                            "delta.P.k3", "se.delta.P.k3", "p.value.P.k3")
 
-write.table(sim.results, paste("etsi.output",setting, "_110424",".txt",sep=""), quote = FALSE, row.names = FALSE)
+write.table(sim.results, paste("sim_output/etsi.output",setting, "_110424",".txt",sep=""), quote = FALSE, row.names = FALSE)
 
