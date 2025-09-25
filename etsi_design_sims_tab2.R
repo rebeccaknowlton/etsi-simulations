@@ -1,5 +1,8 @@
 library(etsi)
 library(quantreg)
+source("etsi_helper_functions.R")
+
+kappa <- c(0.5, 0.6, 0.7)
 
 design_function <- function(setting) {
   # read in study A from simulations
